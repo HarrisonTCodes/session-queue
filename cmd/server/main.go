@@ -16,7 +16,10 @@ func main() {
 
 	redisclient.Init("localhost:6379")
 	ctx := context.Background()
-	err := redisclient.Rdb.Set(ctx, "foo", 0, 0).Err()
+	err := redisclient.Rdb.MSetNX(ctx,
+		"queue:current-position", 0,
+		"queue:current-max-allowed-position", 0,
+	).Err()
 	if err != nil {
 		log.Fatal(err)
 	}

@@ -14,6 +14,6 @@ func HandleStatus(w http.ResponseWriter, r *http.Request) {
 
 func HandleJoin(w http.ResponseWriter, r *http.Request) {
 	ctx := context.Background()
-	foo, _ := redisclient.Rdb.Incr(ctx, "foo").Result()
-	fmt.Fprintf(w, "%s", fmt.Sprintf("%d", foo))
+	position, _ := redisclient.Rdb.Incr(ctx, "queue:current-position").Result()
+	fmt.Fprintf(w, "%s", fmt.Sprintf("%d", position))
 }
