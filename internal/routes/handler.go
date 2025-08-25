@@ -16,12 +16,12 @@ func HandleStatus(w http.ResponseWriter, r *http.Request) {
 
 func HandleJoin(w http.ResponseWriter, r *http.Request) {
 	ctx := context.Background()
-	position, _ := redisclient.Rdb.Incr(ctx, "queue:current-position").Result()
+	pos, _ := redisclient.Rdb.Incr(ctx, "queue:current-position").Result()
 
-	token, err := jwt.CreateToken(position)
+	tkn, err := jwt.CreateToken(pos)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	w.Write([]byte(`{"token":"` + token + `"}`))
+	w.Write([]byte(`{"token":"` + tkn + `"}`))
 }

@@ -14,6 +14,6 @@ func CreateToken(position int64) (string, error) {
 		"iat": time.Now().Unix(),
 		"exp": time.Now().Add(time.Hour * 3).Unix(),
 	}
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	return token.SignedString(hmacSecret)
+	tkn := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	return tkn.SignedString(hmacSecret)
 }
