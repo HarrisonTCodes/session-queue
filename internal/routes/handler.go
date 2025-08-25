@@ -2,9 +2,9 @@ package routes
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"net/http"
+	"strconv"
 	"strings"
 
 	"github.com/HarrisonTCodes/session-queue/internal/jwt"
@@ -20,14 +20,13 @@ func HandleStatus(w http.ResponseWriter, r *http.Request) {
 
 	tknString := strings.TrimPrefix(tknHeader, "Bearer")
 	tknString = strings.TrimSpace(tknString)
-	fmt.Println(tknString)
 
 	pos, err := jwt.ValidateToken(tknString)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	w.Write([]byte(`{"position":"` + fmt.Sprintf("%v", pos) + `"}`))
+	w.Write([]byte(`{"position":"` + strconv.FormatInt(pos, 10) + `"}`))
 }
 
 func HandleJoin(w http.ResponseWriter, r *http.Request) {
