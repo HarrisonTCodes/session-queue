@@ -1,8 +1,6 @@
 package main
 
 import (
-	"context"
-	"log"
 	"net/http"
 
 	"github.com/HarrisonTCodes/session-queue/internal/redisclient"
@@ -15,14 +13,6 @@ func main() {
 	mux.HandleFunc("POST /join", routes.HandleJoin)
 
 	redisclient.Init("localhost:6379")
-	ctx := context.Background()
-	err := redisclient.Rdb.MSetNX(ctx,
-		"queue:current-position", 0,
-		"queue:current-max-allowed-position", 0,
-	).Err()
-	if err != nil {
-		log.Fatal(err)
-	}
 
 	http.ListenAndServe(":3000", mux)
 }
