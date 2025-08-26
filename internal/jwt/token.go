@@ -2,7 +2,6 @@ package jwt
 
 import (
 	"errors"
-	"log"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -25,7 +24,7 @@ func ValidateToken(tknString string) (int64, error) {
 		return hmacSecret, nil
 	}, jwt.WithValidMethods([]string{jwt.SigningMethodHS256.Alg()}))
 	if err != nil {
-		log.Fatal(err)
+		return 0, errors.New(err.Error())
 	}
 
 	claims, ok := tkn.Claims.(jwt.MapClaims)

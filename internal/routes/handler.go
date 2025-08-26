@@ -23,7 +23,8 @@ func HandleStatus(w http.ResponseWriter, r *http.Request) {
 
 	pos, err := jwt.ValidateToken(tknString)
 	if err != nil {
-		log.Fatal(err)
+		http.Error(w, "invalid token", http.StatusBadRequest)
+		return
 	}
 
 	w.Header().Add("Content-Type", "application/json")
