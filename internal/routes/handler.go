@@ -26,6 +26,7 @@ func HandleStatus(w http.ResponseWriter, r *http.Request) {
 		log.Fatal(err)
 	}
 
+	w.Header().Add("Content-Type", "application/json")
 	w.Write([]byte(`{"position":"` + strconv.FormatInt(pos, 10) + `"}`))
 }
 
@@ -38,5 +39,6 @@ func HandleJoin(w http.ResponseWriter, r *http.Request) {
 		log.Fatal(err)
 	}
 
+	w.Header().Add("Content-Type", "application/json")
 	w.Write([]byte(`{"token":"` + tkn + `"}`))
 }
