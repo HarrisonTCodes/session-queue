@@ -2,8 +2,8 @@ package main
 
 import (
 	"net/http"
-	"os"
 
+	"github.com/HarrisonTCodes/session-queue/internal/config"
 	"github.com/HarrisonTCodes/session-queue/internal/redisclient"
 	"github.com/HarrisonTCodes/session-queue/internal/routes"
 )
@@ -13,7 +13,9 @@ func main() {
 	mux.HandleFunc("/status", routes.HandleStatus)
 	mux.HandleFunc("POST /join", routes.HandleJoin)
 
-	redisclient.Init(os.Getenv("REDIS_ADDR"))
+	config.Load()
+
+	redisclient.Init(config.Cfg.RedisAddr)
 
 	http.ListenAndServe(":3000", mux)
 }
