@@ -4,9 +4,12 @@ import (
 	"log"
 	"os"
 	"strconv"
+
+	"github.com/google/uuid"
 )
 
 type Config struct {
+	InstanceId     string
 	RedisAddr      string
 	Port           string
 	WindowSize     int
@@ -14,12 +17,14 @@ type Config struct {
 }
 
 func Load() Config {
+	instanceId := uuid.NewString()
 	redisAddr := os.Getenv("REDIS_ADDR")
 	port := os.Getenv("PORT")
 	windowSize := parseenvInt("WINDOW_SIZE")
 	windowInterval := parseenvInt("WINDOW_INTERVAL")
 
 	cfg := Config{
+		InstanceId:     instanceId,
 		RedisAddr:      redisAddr,
 		Port:           port,
 		WindowSize:     windowSize,
