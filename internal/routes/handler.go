@@ -2,18 +2,22 @@ package routes
 
 import (
 	"context"
+	"encoding/json"
 	"log"
 	"net/http"
-	"strconv"
 	"strings"
 
 	"github.com/HarrisonTCodes/session-queue/internal/jwt"
 	"github.com/redis/go-redis/v9"
 )
 
+type StatusResponse struct {
+	Position int64 `json:"position"`
+	Max      int64 `json:"max"`
+}
+
 func HandleStatus(rdb *redis.Client) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		// TODO: Implement correctly and use the rdb passed in
 		tknHeader := r.Header.Get("Authorization")
 		if tknHeader == "" {
 			http.Error(w, "missing Authorization header", http.StatusBadRequest)
@@ -29,9 +33,18 @@ func HandleStatus(rdb *redis.Client) http.HandlerFunc {
 			return
 		}
 
+		resp := StatusResponse{
+			Position: pos,
+			Max:      0,
+		}
+
 		w.Header().Add("Content-Type", "application/json")
-		w.Write([]byte(`{"position":"` + strconv.FormatInt(pos, 10) + `"}`))
+		json.NewEncoder(w).Encode(resp)
 	}
+}
+
+type JoinResponse struct {
+	Token string `json:"token"`
 }
 
 func HandleJoin(rdb *redis.Client) http.HandlerFunc {
@@ -44,7 +57,11 @@ func HandleJoin(rdb *redis.Client) http.HandlerFunc {
 			log.Fatal(err)
 		}
 
+		resp := JoinResponse{
+			Token: tkn,
+		}
+
 		w.Header().Add("Content-Type", "application/json")
-		w.Write([]byte(`{"token":"` + tkn + `"}`))
+		json.NewEncoder(w).Encode(resp)
 	}
 }
