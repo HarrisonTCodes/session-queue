@@ -17,7 +17,7 @@ func Init(addr string, windowSize int, windowInterval int) *redis.Client {
 	ctx := context.Background()
 	err := rdb.MSetNX(ctx,
 		"queue:current-position", 0,
-		"queue:current-max-allowed-position", windowSize,
+		"queue:window-end", windowSize,
 	).Err()
 	if err != nil {
 		log.Fatal(err)
@@ -38,7 +38,7 @@ func IncrWindow(rdb *redis.Client, ctx context.Context, size int, interval int) 
 		sleepDuration := max(nextIncr.Sub(now), 0)
 		time.Sleep(sleepDuration)
 
-		vals, err := rdb.MGet(ctx, "queue:current-position", "queue:current-max-allowed-position").Result()
+		vals, err := rdb.MGet(ctx, "queue:current-position", "queue:window-end").Result()
 		if err != nil {
 			log.Println("Redis error:", err)
 			nextIncr = time.Now().Add(checkDuration)
@@ -46,17 +46,17 @@ func IncrWindow(rdb *redis.Client, ctx context.Context, size int, interval int) 
 		}
 
 		currentPos, _ := strconv.Atoi(vals[0].(string))
-		maxPos, _ := strconv.Atoi(vals[1].(string))
+		end, _ := strconv.Atoi(vals[1].(string))
 
-		if currentPos >= maxPos {
-			log.Printf("Incrementing window from %d-%d to %d-%d", maxPos-size, maxPos, maxPos, maxPos+size)
-			err := rdb.IncrBy(ctx, "queue:current-max-allowed-position", int64(size)).Err()
+		if currentPos >= end {
+			log.Printf("Incrementing window from %d-%d to %d-%d", end-size, end, end, end+size)
+			err := rdb.IncrBy(ctx, "queue:window-end", int64(size)).Err()
 			if err != nil {
 				log.Fatal(err)
 			}
 			nextIncr = time.Now().Add(intervalDuration)
 		} else {
-			log.Printf("Skipping window increment as current position (%d) is inside current window (%d-%d)", currentPos, maxPos-size, maxPos)
+			log.Printf("Skipping window increment as current position (%d) is inside current window (%d-%d)", currentPos, end-size, end)
 			nextIncr = time.Now().Add(checkDuration)
 		}
 	}

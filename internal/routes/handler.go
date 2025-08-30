@@ -13,8 +13,8 @@ import (
 )
 
 type StatusResponse struct {
-	Position int64 `json:"position"`
-	Max      int64 `json:"max"`
+	Position  int64 `json:"position"`
+	WindowEnd int64 `json:"windowEnd"`
 }
 
 func HandleStatus(rdb *redis.Client) http.HandlerFunc {
@@ -35,12 +35,12 @@ func HandleStatus(rdb *redis.Client) http.HandlerFunc {
 		}
 
 		ctx := context.Background()
-		maxStr, _ := rdb.Get(ctx, "queue:current-max-allowed-position").Result()
-		max, _ := strconv.ParseInt(maxStr, 10, 64)
+		windowEndStr, _ := rdb.Get(ctx, "queue:window-end").Result()
+		windowEnd, _ := strconv.ParseInt(windowEndStr, 10, 64)
 
 		resp := StatusResponse{
-			Position: pos,
-			Max:      max,
+			Position:  pos,
+			WindowEnd: windowEnd,
 		}
 
 		w.Header().Add("Content-Type", "application/json")
