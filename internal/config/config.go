@@ -8,7 +8,7 @@ import (
 
 type Config struct {
 	RedisAddr     string
-	Port          int
+	Port          string
 	WindowSize    int
 	WindowSeconds int
 }
@@ -17,7 +17,7 @@ var Cfg Config
 
 func Load() {
 	redisAddr := os.Getenv("REDIS_ADDR")
-	port := parseenvInt("PORT")
+	port := os.Getenv("PORT")
 	windowSize := parseenvInt("WINDOW_SIZE")
 	windowSeconds := parseenvInt("WINDOW_SECONDS")
 

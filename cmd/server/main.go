@@ -17,5 +17,5 @@ func main() {
 
 	redisclient.Init(config.Cfg.RedisAddr)
 
-	http.ListenAndServe(":3000", mux)
+	http.ListenAndServe(":"+config.Cfg.Port, mux)
 }
