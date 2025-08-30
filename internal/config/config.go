@@ -13,20 +13,20 @@ type Config struct {
 	WindowSeconds int
 }
 
-var Cfg Config
-
-func Load() {
+func Load() Config {
 	redisAddr := os.Getenv("REDIS_ADDR")
 	port := os.Getenv("PORT")
 	windowSize := parseenvInt("WINDOW_SIZE")
 	windowSeconds := parseenvInt("WINDOW_SECONDS")
 
-	Cfg = Config{
+	cfg := Config{
 		RedisAddr:     redisAddr,
 		Port:          port,
 		WindowSize:    windowSize,
 		WindowSeconds: windowSeconds,
 	}
+
+	return cfg
 }
 
 func parseenvInt(name string) int {

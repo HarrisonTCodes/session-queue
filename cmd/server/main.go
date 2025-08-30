@@ -10,17 +10,17 @@ import (
 )
 
 func main() {
-	log.Println("Registering handlers")
-	mux := http.NewServeMux()
-	mux.HandleFunc("/status", routes.HandleStatus)
-	mux.HandleFunc("POST /join", routes.HandleJoin)
-
 	log.Println("Loading config")
-	config.Load()
+	cfg := config.Load()
 
 	log.Println("Connecting to Redis")
-	redisclient.Init(config.Cfg.RedisAddr)
+	rdb := redisclient.Init(cfg.RedisAddr)
 
-	log.Printf("Server running on port %s", config.Cfg.Port)
-	http.ListenAndServe(":"+config.Cfg.Port, mux)
+	log.Println("Registering handlers")
+	mux := http.NewServeMux()
+	mux.HandleFunc("/status", routes.HandleStatus(rdb))
+	mux.HandleFunc("POST /join", routes.HandleJoin(rdb))
+
+	log.Printf("Server running on port %s", cfg.Port)
+	http.ListenAndServe(":"+cfg.Port, mux)
 }
