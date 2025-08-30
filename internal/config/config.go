@@ -7,23 +7,23 @@ import (
 )
 
 type Config struct {
-	RedisAddr     string
-	Port          string
-	WindowSize    int
-	WindowSeconds int
+	RedisAddr      string
+	Port           string
+	WindowSize     int
+	WindowInterval int
 }
 
 func Load() Config {
 	redisAddr := os.Getenv("REDIS_ADDR")
 	port := os.Getenv("PORT")
 	windowSize := parseenvInt("WINDOW_SIZE")
-	windowSeconds := parseenvInt("WINDOW_SECONDS")
+	windowInterval := parseenvInt("WINDOW_INTERVAL")
 
 	cfg := Config{
-		RedisAddr:     redisAddr,
-		Port:          port,
-		WindowSize:    windowSize,
-		WindowSeconds: windowSeconds,
+		RedisAddr:      redisAddr,
+		Port:           port,
+		WindowSize:     windowSize,
+		WindowInterval: windowInterval,
 	}
 
 	return cfg

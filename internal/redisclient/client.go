@@ -9,7 +9,7 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
-func Init(addr string, windowSize int, windowSeconds int) *redis.Client {
+func Init(addr string, windowSize int, windowInterval int) *redis.Client {
 	rdb := redis.NewClient(&redis.Options{
 		Addr: addr,
 	})
@@ -23,13 +23,13 @@ func Init(addr string, windowSize int, windowSeconds int) *redis.Client {
 		log.Fatal(err)
 	}
 
-	go IncrWindow(rdb, ctx, windowSize, windowSeconds)
+	go IncrWindow(rdb, ctx, windowSize, windowInterval)
 
 	return rdb
 }
 
-func IncrWindow(rdb *redis.Client, ctx context.Context, size int, seconds int) {
-	nextIncr := time.Now().Add(time.Second * time.Duration(seconds))
+func IncrWindow(rdb *redis.Client, ctx context.Context, size int, interval int) {
+	nextIncr := time.Now().Add(time.Second * time.Duration(interval))
 
 	for {
 		now := time.Now()
@@ -52,7 +52,7 @@ func IncrWindow(rdb *redis.Client, ctx context.Context, size int, seconds int) {
 			if err != nil {
 				log.Fatal(err)
 			}
-			nextIncr = time.Now().Add(time.Second * time.Duration(seconds))
+			nextIncr = time.Now().Add(time.Second * time.Duration(interval))
 		} else {
 			log.Printf("Skipping window increment as current position (%d) is inside current window (%d-%d)", currentPos, maxPos-size, maxPos)
 			nextIncr = time.Now().Add(time.Second * time.Duration(3))
