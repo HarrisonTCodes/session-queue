@@ -29,7 +29,9 @@ func Init(addr string, windowSize int, windowInterval int) *redis.Client {
 }
 
 func IncrWindow(rdb *redis.Client, ctx context.Context, size int, interval int) {
-	nextIncr := time.Now().Add(time.Second * time.Duration(interval))
+	checkDuration := time.Second * time.Duration(3)
+	intervalDuration := time.Second * time.Duration(interval)
+	nextIncr := time.Now().Add(intervalDuration)
 
 	for {
 		now := time.Now()
@@ -39,7 +41,7 @@ func IncrWindow(rdb *redis.Client, ctx context.Context, size int, interval int) 
 		vals, err := rdb.MGet(ctx, "queue:current-position", "queue:current-max-allowed-position").Result()
 		if err != nil {
 			log.Println("Redis error:", err)
-			nextIncr = time.Now().Add(time.Second * time.Duration(3))
+			nextIncr = time.Now().Add(checkDuration)
 			continue
 		}
 
@@ -52,10 +54,10 @@ func IncrWindow(rdb *redis.Client, ctx context.Context, size int, interval int) 
 			if err != nil {
 				log.Fatal(err)
 			}
-			nextIncr = time.Now().Add(time.Second * time.Duration(interval))
+			nextIncr = time.Now().Add(intervalDuration)
 		} else {
 			log.Printf("Skipping window increment as current position (%d) is inside current window (%d-%d)", currentPos, maxPos-size, maxPos)
-			nextIncr = time.Now().Add(time.Second * time.Duration(3))
+			nextIncr = time.Now().Add(checkDuration)
 		}
 	}
 }
