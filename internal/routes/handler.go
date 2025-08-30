@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"strconv"
 	"strings"
 
 	"github.com/HarrisonTCodes/session-queue/internal/jwt"
@@ -33,9 +34,13 @@ func HandleStatus(rdb *redis.Client) http.HandlerFunc {
 			return
 		}
 
+		ctx := context.Background()
+		maxStr, _ := rdb.Get(ctx, "queue:current-max-allowed-position").Result()
+		max, _ := strconv.ParseInt(maxStr, 10, 64)
+
 		resp := StatusResponse{
 			Position: pos,
-			Max:      0,
+			Max:      max,
 		}
 
 		w.Header().Add("Content-Type", "application/json")
