@@ -48,7 +48,7 @@ func IncrWindow(rdb *redis.Client, ctx context.Context, size int, interval int) 
 		currentPos, _ := strconv.Atoi(vals[0].(string))
 		end, _ := strconv.Atoi(vals[1].(string))
 
-		if currentPos >= end {
+		if currentPos > end {
 			log.Printf("Incrementing window from %d-%d to %d-%d", end-size, end, end, end+size)
 			err := rdb.IncrBy(ctx, "queue:window-end", int64(size)).Err()
 			if err != nil {
