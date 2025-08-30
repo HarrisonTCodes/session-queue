@@ -3,6 +3,7 @@ package redisclient
 import (
 	"context"
 	"log"
+	"strconv"
 	"time"
 
 	"github.com/redis/go-redis/v9"
@@ -22,7 +23,13 @@ func Init(addr string, windowSize int, windowSeconds int) *redis.Client {
 		log.Fatal(err)
 	}
 
-	go IncrWindow(rdb, ctx, windowSize, windowSize, windowSeconds)
+	windowStartStr, err := rdb.Get(ctx, "queue:current-max-allowed-position").Result()
+	if err != nil {
+		log.Fatalln(err)
+	}
+	windowStart, _ := strconv.Atoi(windowStartStr)
+
+	go IncrWindow(rdb, ctx, windowStart, windowSize, windowSeconds)
 
 	return rdb
 }
