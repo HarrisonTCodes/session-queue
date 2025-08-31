@@ -64,17 +64,25 @@ type JoinResponse struct {
 func HandleJoin(rdb *redis.Client) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := context.Background()
-		pos, _ := rdb.Incr(ctx, "queue:current-position").Result()
+		pos, err := rdb.Incr(ctx, "queue:current-position").Result()
+		if err != nil {
+			log.Println("Redis error during position increment:", err)
+			http.Error(w, "failed to issue token", http.StatusInternalServerError)
+			return
+		}
 
 		tkn, err := jwt.CreateToken(pos)
 		if err != nil {
-			log.Fatal(err)
+			log.Println("Failed to create JWT")
+			http.Error(w, "failed to issue token", http.StatusInternalServerError)
+			return
 		}
 
 		resp := JoinResponse{
 			Token: tkn,
 		}
 
+		log.Printf("Issuing token (position %d)", pos)
 		w.Header().Add("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(resp)
 	}

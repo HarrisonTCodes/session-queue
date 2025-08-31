@@ -36,7 +36,7 @@ func incrWindow(rdb *redis.Client, ctx context.Context, instanceId string, size 
 	for {
 		leaderId, err := rdb.Get(ctx, "queue:leader-id").Result()
 		if err != nil && err != redis.Nil {
-			log.Print("Redis error during leader retrieval:", err)
+			log.Println("Redis error during leader retrieval:", err)
 			time.Sleep(checkDuration)
 			continue
 		}
@@ -46,7 +46,7 @@ func incrWindow(rdb *redis.Client, ctx context.Context, instanceId string, size 
 			log.Println("Electing self as leader")
 			setLeader, err := rdb.SetNX(ctx, "queue:leader-id", instanceId, leaderDuration).Result()
 			if err != nil {
-				log.Print("Redis error during leader election:", err)
+				log.Println("Redis error during leader election:", err)
 				time.Sleep(checkDuration)
 				continue
 			}
