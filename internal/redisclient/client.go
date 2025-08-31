@@ -24,12 +24,12 @@ func Init(instanceId string, addr string, windowSize int, windowInterval int) *r
 		log.Fatal(err)
 	}
 
-	go IncrWindow(rdb, ctx, instanceId, windowSize, windowInterval)
+	go incrWindow(rdb, ctx, instanceId, windowSize, windowInterval)
 
 	return rdb
 }
 
-func IncrWindow(rdb *redis.Client, ctx context.Context, instanceId string, size int, interval int) {
+func incrWindow(rdb *redis.Client, ctx context.Context, instanceId string, size int, interval int) {
 	checkDuration := time.Second * 3
 	leaderDuration := time.Second * 5
 
