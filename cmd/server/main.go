@@ -18,7 +18,7 @@ func main() {
 
 	log.Println("Registering handlers")
 	mux := http.NewServeMux()
-	mux.HandleFunc("/status", routes.HandleStatus(rdb, cfg.WindowSize))
+	mux.HandleFunc("/status", routes.HandleStatus(rdb, cfg.WindowSize, cfg.ActiveWindowCount))
 	mux.HandleFunc("POST /join", routes.HandleJoin(rdb))
 
 	log.Printf("Server running on port %s", cfg.Port)

@@ -17,7 +17,7 @@ type StatusResponse struct {
 	Status   string `json:"status"`
 }
 
-func HandleStatus(rdb *redis.Client, windowSize int) http.HandlerFunc {
+func HandleStatus(rdb *redis.Client, windowSize int, activeWindowCount int) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		tknHeader := r.Header.Get("Authorization")
 		if tknHeader == "" {
@@ -39,7 +39,7 @@ func HandleStatus(rdb *redis.Client, windowSize int) http.HandlerFunc {
 		windowEnd, _ := strconv.ParseInt(windowEndStr, 10, 64)
 
 		var status string
-		if pos <= windowEnd-int64(windowSize) {
+		if pos <= windowEnd-int64(windowSize*activeWindowCount) {
 			status = "expired"
 		} else if pos > windowEnd {
 			status = "waiting"

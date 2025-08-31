@@ -9,11 +9,12 @@ import (
 )
 
 type Config struct {
-	InstanceId     string
-	RedisAddr      string
-	Port           string
-	WindowSize     int
-	WindowInterval int
+	InstanceId        string
+	RedisAddr         string
+	Port              string
+	WindowSize        int
+	WindowInterval    int
+	ActiveWindowCount int
 }
 
 func Load() Config {
@@ -22,13 +23,15 @@ func Load() Config {
 	port := os.Getenv("PORT")
 	windowSize := parseenvInt("WINDOW_SIZE")
 	windowInterval := parseenvInt("WINDOW_INTERVAL")
+	activeWindowCount := parseenvInt("ACTIVE_WINDOW_COUNT")
 
 	cfg := Config{
-		InstanceId:     instanceId,
-		RedisAddr:      redisAddr,
-		Port:           port,
-		WindowSize:     windowSize,
-		WindowInterval: windowInterval,
+		InstanceId:        instanceId,
+		RedisAddr:         redisAddr,
+		Port:              port,
+		WindowSize:        windowSize,
+		WindowInterval:    windowInterval,
+		ActiveWindowCount: activeWindowCount,
 	}
 
 	return cfg
