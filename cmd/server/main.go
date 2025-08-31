@@ -14,7 +14,7 @@ func main() {
 	cfg := config.Load()
 
 	log.Println("Connecting to Redis")
-	rdb := redisclient.Init(cfg.RedisAddr, cfg.WindowSize, cfg.WindowInterval)
+	rdb := redisclient.Init(cfg.InstanceId, cfg.RedisAddr, cfg.WindowSize, cfg.WindowInterval)
 
 	log.Println("Registering handlers")
 	mux := http.NewServeMux()
