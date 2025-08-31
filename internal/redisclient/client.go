@@ -31,6 +31,7 @@ func Init(instanceId string, addr string, windowSize int, windowInterval int) *r
 
 func IncrWindow(rdb *redis.Client, ctx context.Context, instanceId string, size int, interval int) {
 	checkDuration := time.Second * 3
+	leaderDuration := time.Second * 5
 
 	for {
 		leaderId, err := rdb.Get(ctx, "queue:leader-id").Result()
@@ -43,7 +44,7 @@ func IncrWindow(rdb *redis.Client, ctx context.Context, instanceId string, size 
 		var isLeader bool
 		if err == redis.Nil {
 			log.Println("Electing self as leader")
-			setLeader, err := rdb.SetNX(ctx, "queue:leader-id", instanceId, time.Second*10).Result()
+			setLeader, err := rdb.SetNX(ctx, "queue:leader-id", instanceId, leaderDuration).Result()
 			if err != nil {
 				log.Print("Redis error during leader election:", err)
 				time.Sleep(checkDuration)
@@ -59,7 +60,12 @@ func IncrWindow(rdb *redis.Client, ctx context.Context, instanceId string, size 
 			time.Sleep(checkDuration)
 			continue
 		}
-		log.Println("Self is leader")
+
+		log.Println("Self is leader, extending expiry")
+		err = rdb.Expire(ctx, "queue:leader-id", leaderDuration).Err()
+		if err != nil {
+			log.Println("Redis error during leadership extension:", err)
+		}
 
 		vals, err := rdb.MGet(ctx, "queue:current-position", "queue:window-end", "queue:next-window-increment").Result()
 		if err != nil {
