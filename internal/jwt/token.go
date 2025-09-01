@@ -7,21 +7,19 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
-var hmacSecret = []byte("secret")
-
-func CreateToken(position int64) (string, error) {
+func CreateToken(position int64, secret []byte) (string, error) {
 	claims := jwt.MapClaims{
 		"sub": position,
 		"iat": time.Now().Unix(),
 		"exp": time.Now().Add(time.Hour * 3).Unix(),
 	}
 	tkn := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	return tkn.SignedString(hmacSecret)
+	return tkn.SignedString(secret)
 }
 
-func ValidateToken(tknString string) (int64, error) {
+func ValidateToken(tknString string, secret []byte) (int64, error) {
 	tkn, err := jwt.Parse(tknString, func(tkn *jwt.Token) (any, error) {
-		return hmacSecret, nil
+		return secret, nil
 	}, jwt.WithValidMethods([]string{jwt.SigningMethodHS256.Alg()}))
 	if err != nil {
 		return 0, errors.New(err.Error())

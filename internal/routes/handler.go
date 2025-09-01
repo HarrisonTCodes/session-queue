@@ -17,7 +17,7 @@ type StatusResponse struct {
 	Status   string `json:"status"`
 }
 
-func HandleStatus(rdb *redis.Client, windowSize int, activeWindowCount int) http.HandlerFunc {
+func HandleStatus(rdb *redis.Client, jwtSecret []byte, windowSize int, activeWindowCount int) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		tknHeader := r.Header.Get("Authorization")
 		if tknHeader == "" {
@@ -28,7 +28,7 @@ func HandleStatus(rdb *redis.Client, windowSize int, activeWindowCount int) http
 		tknString := strings.TrimPrefix(tknHeader, "Bearer")
 		tknString = strings.TrimSpace(tknString)
 
-		pos, err := jwt.ValidateToken(tknString)
+		pos, err := jwt.ValidateToken(tknString, jwtSecret)
 		if err != nil {
 			http.Error(w, "invalid token", http.StatusBadRequest)
 			return
@@ -61,7 +61,7 @@ type JoinResponse struct {
 	Token string `json:"token"`
 }
 
-func HandleJoin(rdb *redis.Client) http.HandlerFunc {
+func HandleJoin(rdb *redis.Client, jwtSecret []byte) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := context.Background()
 		pos, err := rdb.Incr(ctx, "queue:current-position").Result()
@@ -71,9 +71,9 @@ func HandleJoin(rdb *redis.Client) http.HandlerFunc {
 			return
 		}
 
-		tkn, err := jwt.CreateToken(pos)
+		tkn, err := jwt.CreateToken(pos, jwtSecret)
 		if err != nil {
-			log.Println("Failed to create JWT")
+			log.Println("Failed to create JWT:", err)
 			http.Error(w, "failed to issue token", http.StatusInternalServerError)
 			return
 		}

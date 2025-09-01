@@ -18,8 +18,8 @@ func main() {
 
 	log.Println("Registering handlers")
 	mux := http.NewServeMux()
-	mux.HandleFunc("/status", routes.HandleStatus(rdb, cfg.WindowSize, cfg.ActiveWindowCount))
-	mux.HandleFunc("POST /join", routes.HandleJoin(rdb))
+	mux.HandleFunc("/status", routes.HandleStatus(rdb, cfg.JwtSecret, cfg.WindowSize, cfg.ActiveWindowCount))
+	mux.HandleFunc("POST /join", routes.HandleJoin(rdb, cfg.JwtSecret))
 
 	log.Printf("Server running on port %s", cfg.Port)
 	http.ListenAndServe(":"+cfg.Port, mux)
