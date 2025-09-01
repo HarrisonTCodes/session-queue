@@ -12,6 +12,7 @@ type Config struct {
 	InstanceId        string
 	RedisAddr         string
 	Port              string
+	JwtSecret         []byte
 	WindowSize        int
 	WindowInterval    int
 	ActiveWindowCount int
@@ -21,6 +22,7 @@ func Load() Config {
 	instanceId := uuid.NewString()
 	redisAddr := os.Getenv("REDIS_ADDR")
 	port := os.Getenv("PORT")
+	jwtSecret := []byte(os.Getenv("JWT_SECRET"))
 	windowSize := parseenvInt("WINDOW_SIZE")
 	windowInterval := parseenvInt("WINDOW_INTERVAL")
 	activeWindowCount := parseenvInt("ACTIVE_WINDOW_COUNT")
@@ -29,6 +31,7 @@ func Load() Config {
 		InstanceId:        instanceId,
 		RedisAddr:         redisAddr,
 		Port:              port,
+		JwtSecret:         jwtSecret,
 		WindowSize:        windowSize,
 		WindowInterval:    windowInterval,
 		ActiveWindowCount: activeWindowCount,
