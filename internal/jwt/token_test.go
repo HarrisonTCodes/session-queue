@@ -20,3 +20,18 @@ func TestCreateAndValidateToken(t *testing.T) {
 		t.Fatalf("Expected validated token position %v, got %v", pos, validatedPos)
 	}
 }
+
+func TestValidateToken_Invalid(t *testing.T) {
+	createSecret := []byte("wrong-secret")
+	validateSecret := []byte("secret")
+
+	token, err := CreateToken(10, createSecret)
+	if err != nil {
+		t.Fatalf("CreateToken failed: %v", err)
+	}
+
+	_, err = ValidateToken(token, validateSecret)
+	if err == nil {
+		t.Fatalf(("Expected validate token to fail, no failure"))
+	}
+}
