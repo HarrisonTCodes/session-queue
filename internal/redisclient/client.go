@@ -34,37 +34,16 @@ func incrWindow(rdb *redis.Client, ctx context.Context, instanceId string, size 
 	leaderDuration := time.Second * 5
 
 	for {
-		leaderId, err := rdb.Get(ctx, "queue:leader-id").Result()
-		if err != nil && err != redis.Nil {
-			log.Println("Redis error during leader retrieval:", err)
+		isLeader, err := ensureElectedLeader(rdb, ctx, instanceId, leaderDuration)
+		if err != nil {
 			time.Sleep(checkDuration)
 			continue
-		}
-
-		var isLeader bool
-		if err == redis.Nil {
-			log.Println("Electing self as leader")
-			setLeader, err := rdb.SetNX(ctx, "queue:leader-id", instanceId, leaderDuration).Result()
-			if err != nil {
-				log.Println("Redis error during leader election:", err)
-				time.Sleep(checkDuration)
-				continue
-			}
-			isLeader = setLeader
-		} else {
-			isLeader = leaderId == instanceId
 		}
 
 		if !isLeader {
 			log.Println("Self is not leader")
 			time.Sleep(checkDuration)
 			continue
-		}
-
-		log.Println("Self is leader, extending expiry")
-		err = rdb.Expire(ctx, "queue:leader-id", leaderDuration).Err()
-		if err != nil {
-			log.Println("Redis error during leadership extension:", err)
 		}
 
 		vals, err := rdb.MGet(ctx, "queue:current-position", "queue:window-end", "queue:next-window-increment").Result()
