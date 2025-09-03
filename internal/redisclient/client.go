@@ -24,12 +24,12 @@ func Init(instanceId string, addr string, windowSize int, windowInterval int) *r
 		log.Fatal(err)
 	}
 
-	go incrWindow(rdb, ctx, instanceId, windowSize, windowInterval)
+	go watchQueue(rdb, ctx, instanceId, windowSize, windowInterval)
 
 	return rdb
 }
 
-func incrWindow(rdb *redis.Client, ctx context.Context, instanceId string, size int, interval int) {
+func watchQueue(rdb *redis.Client, ctx context.Context, instanceId string, windowSize int, interval int) {
 	checkDuration := time.Second * 3
 	leaderDuration := time.Second * 5
 
@@ -65,20 +65,16 @@ func incrWindow(rdb *redis.Client, ctx context.Context, instanceId string, size 
 		}
 
 		if currentPos > windowEnd {
-			log.Printf("Incrementing window from %d-%d to %d-%d", windowEnd-size, windowEnd, windowEnd, windowEnd+size)
+			log.Printf("Incrementing window from %d-%d to %d-%d", windowEnd-windowSize, windowEnd, windowEnd, windowEnd+windowSize)
 
-			pipe := rdb.TxPipeline()
-			pipe.IncrBy(ctx, "queue:window-end", int64(size))
-			newNextUpdate := now + int64(interval)
-			pipe.Set(ctx, "queue:next-window-increment", strconv.FormatInt(newNextUpdate, 10), 0)
-			_, err := pipe.Exec(ctx)
+			err = incrementWindow(rdb, ctx, windowSize, interval)
 			if err != nil {
 				log.Println("Redis error during incrementing window", err)
 				time.Sleep(checkDuration)
 				continue
 			}
 		} else {
-			log.Printf("Skipping window increment as current position (%d) is inside window (%d-%d)", currentPos, windowEnd-size, windowEnd)
+			log.Printf("Skipping window increment as current position (%d) is inside window (%d-%d)", currentPos, windowEnd-windowSize, windowEnd)
 		}
 
 		time.Sleep(checkDuration)
