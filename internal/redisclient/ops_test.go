@@ -37,3 +37,18 @@ func TestLeaderAlreadyElected(t *testing.T) {
 		t.Fatalf("Expected leader to be other-id, got %v", leaderId)
 	}
 }
+
+func TestExtendSelfLeadership(t *testing.T) {
+	s, _ := miniredis.Run()
+	defer s.Close()
+
+	ctx := context.Background()
+	rdb := redis.NewClient(&redis.Options{Addr: s.Addr()})
+	rdb.SetNX(ctx, "queue:leader-id", "id", time.Second*5)
+	ensureElectedLeader(rdb, ctx, "id", time.Second*10)
+
+	expiry, _ := rdb.TTL(ctx, "queue:leader-id").Result()
+	if expiry <= time.Second*5 {
+		t.Fatal("Expected leader expiry to extend but it did not")
+	}
+}
