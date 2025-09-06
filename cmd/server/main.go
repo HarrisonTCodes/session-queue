@@ -1,7 +1,7 @@
 package main
 
 import (
-	"log"
+	"log/slog"
 	"net/http"
 
 	"github.com/HarrisonTCodes/session-queue/internal/config"
@@ -10,17 +10,17 @@ import (
 )
 
 func main() {
-	log.Println("Loading config")
+	slog.Info("Loading config")
 	cfg := config.Load()
 
-	log.Println("Connecting to Redis")
+	slog.Info("Connecting to Redis", "address", cfg.RedisAddr)
 	rdb := redisclient.Init(cfg.InstanceId, cfg.RedisAddr, cfg.WindowSize, cfg.WindowInterval)
 
-	log.Println("Registering handlers")
+	slog.Info("Registering HTTP handlers")
 	mux := http.NewServeMux()
 	mux.HandleFunc("/status", routes.HandleStatus(rdb, cfg.JwtSecret, cfg.WindowSize, cfg.ActiveWindowCount))
 	mux.HandleFunc("POST /join", routes.HandleJoin(rdb, cfg.JwtSecret))
 
-	log.Printf("Server running on port %s", cfg.Port)
+	slog.Info("Running server", "port", cfg.Port)
 	http.ListenAndServe(":"+cfg.Port, mux)
 }

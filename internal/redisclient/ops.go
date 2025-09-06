@@ -2,7 +2,7 @@ package redisclient
 
 import (
 	"context"
-	"log"
+	"log/slog"
 	"strconv"
 	"time"
 
@@ -12,16 +12,16 @@ import (
 func ensureElectedLeader(rdb *redis.Client, ctx context.Context, instanceId string, leaderDuration time.Duration) (bool, error) {
 	leaderId, err := rdb.Get(ctx, "queue:leader-id").Result()
 	if err != nil && err != redis.Nil {
-		log.Println("Redis error during leader retrieval:", err)
+		slog.Error("Redis error during leader retrieval", "error", err)
 		return false, err
 	}
 
 	var isLeader bool
 	if err == redis.Nil {
-		log.Println("Electing self as leader")
+		slog.Info("Electing self as leader")
 		setLeader, err := rdb.SetNX(ctx, "queue:leader-id", instanceId, leaderDuration).Result()
 		if err != nil {
-			log.Println("Redis error during leader election:", err)
+			slog.Error("Redis error during leader election", "error", err)
 			return false, err
 		}
 		isLeader = setLeader
@@ -30,10 +30,10 @@ func ensureElectedLeader(rdb *redis.Client, ctx context.Context, instanceId stri
 	}
 
 	if isLeader {
-		log.Println("Self is leader, extending expiry")
+		slog.Info("Self is leader, extending expiry")
 		err = rdb.Expire(ctx, "queue:leader-id", leaderDuration).Err()
 		if err != nil {
-			log.Println("Redis error during leadership extension:", err)
+			slog.Error("Redis error during leadership extension", "error", err)
 			return false, err
 		}
 	}

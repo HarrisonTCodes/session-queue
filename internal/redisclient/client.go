@@ -2,7 +2,9 @@ package redisclient
 
 import (
 	"context"
-	"log"
+	"fmt"
+	"log/slog"
+	"os"
 	"strconv"
 	"time"
 
@@ -21,7 +23,8 @@ func Init(instanceId string, addr string, windowSize int, windowInterval int) *r
 		"queue:next-window-increment", windowInterval,
 	).Err()
 	if err != nil {
-		log.Fatal(err)
+		slog.Error("Redis error during initialisation of key-value pairs", "error", err)
+		os.Exit(1)
 	}
 
 	go watchQueue(rdb, ctx, instanceId, windowSize, windowInterval)
@@ -41,14 +44,14 @@ func watchQueue(rdb *redis.Client, ctx context.Context, instanceId string, windo
 		}
 
 		if !isLeader {
-			log.Println("Self is not leader")
+			slog.Info("Self is not leader, skipping")
 			time.Sleep(checkDuration)
 			continue
 		}
 
 		vals, err := rdb.MGet(ctx, "queue:current-position", "queue:window-end", "queue:next-window-increment").Result()
 		if err != nil {
-			log.Println("Redis error during retrieval of queue values:", err)
+			slog.Error("Redis error during retrieval of queue values", "error", err)
 			time.Sleep(checkDuration)
 			continue
 		}
@@ -65,16 +68,16 @@ func watchQueue(rdb *redis.Client, ctx context.Context, instanceId string, windo
 		}
 
 		if currentPos > windowEnd {
-			log.Printf("Incrementing window from %d-%d to %d-%d", windowEnd-windowSize, windowEnd, windowEnd, windowEnd+windowSize)
+			slog.Info("Incrementing window", "previous", fmt.Sprintf("%d-%d", windowEnd-windowSize, windowEnd), "new", fmt.Sprintf("%d-%d", windowEnd, windowEnd+windowSize))
 
 			err = incrementWindow(rdb, ctx, windowSize, interval)
 			if err != nil {
-				log.Println("Redis error during incrementing window", err)
+				slog.Error("Redis error during incrementing window", "error", err)
 				time.Sleep(checkDuration)
 				continue
 			}
 		} else {
-			log.Printf("Skipping window increment as current position (%d) is inside window (%d-%d)", currentPos, windowEnd-windowSize, windowEnd)
+			slog.Info("Skipping window increment as current position is inside window", "position", currentPos, "window", fmt.Sprintf("%d-%d", windowEnd-windowSize, windowEnd))
 		}
 
 		time.Sleep(checkDuration)

@@ -1,7 +1,7 @@
 package config
 
 import (
-	"log"
+	"log/slog"
 	"os"
 	"strconv"
 
@@ -21,6 +21,9 @@ type Config struct {
 func Load() Config {
 	instanceId := uuid.NewString()
 	redisAddr := os.Getenv("REDIS_ADDR")
+	if len(redisAddr) == 0 {
+		redisAddr = "localhost:6379"
+	}
 	port := os.Getenv("PORT")
 	jwtSecret := []byte(os.Getenv("JWT_SECRET"))
 	windowSize := parseenvInt("WINDOW_SIZE")
@@ -44,7 +47,8 @@ func parseenvInt(name string) int {
 	valueStr := os.Getenv(name)
 	value, err := strconv.Atoi(valueStr)
 	if err != nil {
-		log.Fatalf("Failed to parse %s env var: %v", name, err)
+		slog.Error("Failed to parse env var", "variable", name, "error", err)
+		os.Exit(1)
 	}
 	return value
 }

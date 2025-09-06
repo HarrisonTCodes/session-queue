@@ -3,7 +3,7 @@ package routes
 import (
 	"context"
 	"encoding/json"
-	"log"
+	"log/slog"
 	"net/http"
 	"strconv"
 	"strings"
@@ -74,14 +74,14 @@ func HandleJoin(rdb *redis.Client, jwtSecret []byte) http.HandlerFunc {
 		ctx := context.Background()
 		pos, err := rdb.Incr(ctx, "queue:current-position").Result()
 		if err != nil {
-			log.Println("Redis error during position increment:", err)
+			slog.Error("Redis error during position increment", "error", err)
 			http.Error(w, "failed to issue token", http.StatusInternalServerError)
 			return
 		}
 
 		tkn, err := jwt.CreateToken(pos, jwtSecret)
 		if err != nil {
-			log.Println("Failed to create JWT:", err)
+			slog.Error("Failed to create JWT", "error", err)
 			http.Error(w, "failed to issue token", http.StatusInternalServerError)
 			return
 		}
@@ -90,7 +90,7 @@ func HandleJoin(rdb *redis.Client, jwtSecret []byte) http.HandlerFunc {
 			Token: tkn,
 		}
 
-		log.Printf("Issuing token (position %d)", pos)
+		slog.Info("Issuing token", "position", pos)
 		w.Header().Add("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(resp)
 	}
