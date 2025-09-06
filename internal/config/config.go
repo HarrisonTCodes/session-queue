@@ -29,6 +29,9 @@ func Load() Config {
 	windowSize := parseenvInt("WINDOW_SIZE")
 	windowInterval := parseenvInt("WINDOW_INTERVAL")
 	activeWindowCount := parseenvInt("ACTIVE_WINDOW_COUNT")
+	if activeWindowCount == 1 {
+		slog.Warn("ACTIVE_WINDOW_COUNT set to 1. This may create a 'cliff edge' in slow workloads where the last ticket in the window is immediately expired if the window increments shortly after it is issued. Consider using a value above 1 to avoid this edge case")
+	}
 
 	cfg := Config{
 		InstanceId:        instanceId,
