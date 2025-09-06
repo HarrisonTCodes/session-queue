@@ -12,9 +12,17 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
+type Status string
+
+const (
+	StatusExpired Status = "expired"
+	StatusWaiting Status = "waiting"
+	StatusActive  Status = "active"
+)
+
 type StatusResponse struct {
 	Position int64  `json:"position"`
-	Status   string `json:"status"`
+	Status   Status `json:"status"`
 }
 
 func HandleStatus(rdb *redis.Client, jwtSecret []byte, windowSize int, activeWindowCount int) http.HandlerFunc {
@@ -38,13 +46,13 @@ func HandleStatus(rdb *redis.Client, jwtSecret []byte, windowSize int, activeWin
 		windowEndStr, _ := rdb.Get(ctx, "queue:window-end").Result()
 		windowEnd, _ := strconv.ParseInt(windowEndStr, 10, 64)
 
-		var status string
+		var status Status
 		if pos <= windowEnd-int64(windowSize*activeWindowCount) {
-			status = "expired"
+			status = StatusExpired
 		} else if pos > windowEnd {
-			status = "waiting"
+			status = StatusWaiting
 		} else {
-			status = "active"
+			status = StatusActive
 		}
 
 		resp := StatusResponse{
