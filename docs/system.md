@@ -1,12 +1,12 @@
 # System Design
 
-The system provides a virtual waiting queue service, using ticket based rate limiting. It uses a sliding window solution to process tickets in batches.
+The system provides a virtual waiting queue service, using ticket based rate limiting. It uses a sliding window solution to process tickets in batches. The solution has similar behaviour to those used by popular online retailers, such as Ticketmaster, for handling high demand events.
 
 ## Rate-limiting Algorithm
 Users are assigned sequential tickets, implemented as JWTs, with a position (as the subject).
 The server keeps track of two dynamic values, which are just integers in Redis:
 - The next queue position, which is attached to the next requested ticket and then incremented
-- The last active queue position in the current active window  
+- The last queue position in the current active window  
 
 Based on static variables (namely the window size and number of active windows), each ticket's state can be derived from its own position, as either:
 - Expired: the ticket was issued before the current acive windows and is no longer active
@@ -15,9 +15,11 @@ Based on static variables (namely the window size and number of active windows),
 
 The last active queue position can then be incremented, by the window size, at a regular interval, thus sliding the window and processing the next batch of tickets.
 
+![Queueing](./queueing.png)
+
 ## Leader Election
 The system is distributed, so there is a leader election process to decide which server handles incrementing the window in Redis. All servers, regardless of leadership, can assign tokens and increment the queue position with ease, as the Redis `INCR` operation is atomic.
-Each instance self-assigns a UUID on startup. Everytime the instance then checks Redis for whether a window increment is due, it first checks leadership.
+Each instance self-assigns a UUID on startup. Every time the instance then checks Redis for whether a window increment is due, it first checks leadership.
 There is a leader key in Redis with the current leader ID as the value and a short TTL (to avoid broken nodes being considered leader for long periods). The instance will attempt to retrieve this value.
 - If the value is not their ID, they are not leader. No action needed.
 - If the value is their ID, they are leader. Extend the expiry and continue.
