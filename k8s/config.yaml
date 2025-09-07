@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: session-queue-config
+data:
+  REDIS_ADDR: redis:6379
+  PORT: "3000"
+  WINDOW_SIZE: "10"
+  WINDOW_INTERVAL: "30"
+  ACTIVE_WINDOW_COUNT: "2"
+
+---
+
+apiVersion: v1
+kind: Secret
+metadata:
+  name: session-queue-secret
+type: Opaque
+stringData:
+  JWT_SECRET: secret
