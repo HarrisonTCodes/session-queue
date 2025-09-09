@@ -1,4 +1,4 @@
-package redisclient
+package queue
 
 import (
 	"context"
@@ -15,7 +15,7 @@ func TestElectSelfAsLeader(t *testing.T) {
 
 	ctx := context.Background()
 	rdb := redis.NewClient(&redis.Options{Addr: s.Addr()})
-	ensureElectedLeader(rdb, ctx, "id", time.Second*10)
+	EnsureElectedLeader(rdb, ctx, "id", time.Second*10)
 
 	leaderId, _ := rdb.Get(ctx, "queue:leader-id").Result()
 	if leaderId != "id" {
@@ -30,7 +30,7 @@ func TestLeaderAlreadyElected(t *testing.T) {
 	ctx := context.Background()
 	rdb := redis.NewClient(&redis.Options{Addr: s.Addr()})
 	rdb.SetNX(ctx, "queue:leader-id", "other-id", 0)
-	ensureElectedLeader(rdb, ctx, "id", time.Second*10)
+	EnsureElectedLeader(rdb, ctx, "id", time.Second*10)
 
 	leaderId, _ := rdb.Get(ctx, "queue:leader-id").Result()
 	if leaderId != "other-id" {
@@ -45,7 +45,7 @@ func TestExtendSelfLeadership(t *testing.T) {
 	ctx := context.Background()
 	rdb := redis.NewClient(&redis.Options{Addr: s.Addr()})
 	rdb.SetNX(ctx, "queue:leader-id", "id", time.Second*5)
-	ensureElectedLeader(rdb, ctx, "id", time.Second*10)
+	EnsureElectedLeader(rdb, ctx, "id", time.Second*10)
 
 	expiry, _ := rdb.TTL(ctx, "queue:leader-id").Result()
 	if expiry <= time.Second*5 {

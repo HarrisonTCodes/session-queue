@@ -8,6 +8,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/HarrisonTCodes/session-queue/internal/queue"
 	"github.com/redis/go-redis/v9"
 )
 
@@ -37,7 +38,7 @@ func watchQueue(rdb *redis.Client, ctx context.Context, instanceId string, windo
 	leaderDuration := time.Second * 5
 
 	for {
-		isLeader, err := ensureElectedLeader(rdb, ctx, instanceId, leaderDuration)
+		isLeader, err := queue.EnsureElectedLeader(rdb, ctx, instanceId, leaderDuration)
 		if err != nil {
 			time.Sleep(checkDuration)
 			continue
@@ -70,7 +71,7 @@ func watchQueue(rdb *redis.Client, ctx context.Context, instanceId string, windo
 		if currentPos > windowEnd {
 			slog.Info("Incrementing window", "previous", fmt.Sprintf("%d-%d", windowEnd-windowSize, windowEnd), "new", fmt.Sprintf("%d-%d", windowEnd, windowEnd+windowSize))
 
-			err = incrementWindow(rdb, ctx, windowSize, interval)
+			err = queue.IncrementWindow(rdb, ctx, windowSize, interval)
 			if err != nil {
 				slog.Error("Redis error during incrementing window", "error", err)
 				time.Sleep(checkDuration)
