@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/HarrisonTCodes/session-queue/internal/jwt"
+	"github.com/HarrisonTCodes/session-queue/internal/queue"
 	"github.com/redis/go-redis/v9"
 )
 
@@ -46,18 +47,11 @@ func HandleStatus(rdb *redis.Client, jwtSecret []byte, windowSize int, activeWin
 		windowEndStr, _ := rdb.Get(ctx, "queue:window-end").Result()
 		windowEnd, _ := strconv.ParseInt(windowEndStr, 10, 64)
 
-		var status Status
-		if pos <= windowEnd-int64(windowSize*activeWindowCount) {
-			status = StatusExpired
-		} else if pos > windowEnd {
-			status = StatusWaiting
-		} else {
-			status = StatusActive
-		}
+		status := queue.GetPositionStatus(pos, windowEnd, windowSize, activeWindowCount)
 
 		resp := StatusResponse{
 			Position: pos,
-			Status:   status,
+			Status:   Status(status),
 		}
 
 		w.Header().Add("Content-Type", "application/json")
