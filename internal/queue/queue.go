@@ -4,13 +4,28 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
+	"os"
 	"strconv"
 	"time"
 
 	"github.com/redis/go-redis/v9"
 )
 
-func WatchQueue(rdb *redis.Client, ctx context.Context, instanceId string, windowSize int, interval int) {
+func Init(rdb *redis.Client, ctx context.Context, instanceId string, addr string, windowSize int, windowInterval int) {
+	err := rdb.MSetNX(ctx,
+		"queue:current-position", 0,
+		"queue:window-end", windowSize,
+		"queue:next-window-increment", windowInterval,
+	).Err()
+	if err != nil {
+		slog.Error("Redis error during initialisation of key-value pairs", "error", err)
+		os.Exit(1)
+	}
+
+	go watch(rdb, ctx, instanceId, windowSize, windowInterval)
+}
+
+func watch(rdb *redis.Client, ctx context.Context, instanceId string, windowSize int, interval int) {
 	checkDuration := time.Second * 3
 	leaderDuration := time.Second * 5
 

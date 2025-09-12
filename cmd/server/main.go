@@ -1,12 +1,14 @@
 package main
 
 import (
+	"context"
 	"log/slog"
 	"net/http"
 
 	"github.com/HarrisonTCodes/session-queue/internal/config"
-	"github.com/HarrisonTCodes/session-queue/internal/redisclient"
+	"github.com/HarrisonTCodes/session-queue/internal/queue"
 	"github.com/HarrisonTCodes/session-queue/internal/routes"
+	"github.com/redis/go-redis/v9"
 )
 
 func main() {
@@ -14,7 +16,11 @@ func main() {
 	cfg := config.Load()
 
 	slog.Info("Connecting to Redis", "address", cfg.RedisAddr)
-	rdb := redisclient.Init(cfg.InstanceId, cfg.RedisAddr, cfg.WindowSize, cfg.WindowInterval)
+	rdb := redis.NewClient(&redis.Options{
+		Addr: cfg.RedisAddr,
+	})
+	ctx := context.Background()
+	queue.Init(rdb, ctx, cfg.InstanceId, cfg.RedisAddr, cfg.WindowSize, cfg.WindowInterval)
 
 	slog.Info("Registering HTTP handlers")
 	mux := http.NewServeMux()
