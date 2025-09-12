@@ -1,7 +1,6 @@
 package routes
 
 import (
-	"context"
 	"encoding/json"
 	"log/slog"
 	"net/http"
@@ -43,7 +42,7 @@ func HandleStatus(rdb *redis.Client, jwtSecret []byte, windowSize int, activeWin
 			return
 		}
 
-		ctx := context.Background()
+		ctx := r.Context()
 		windowEndStr, _ := rdb.Get(ctx, queue.KeyWindowEnd).Result()
 		windowEnd, _ := strconv.ParseInt(windowEndStr, 10, 64)
 
@@ -65,7 +64,7 @@ type JoinResponse struct {
 
 func HandleJoin(rdb *redis.Client, jwtSecret []byte) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		ctx := context.Background()
+		ctx := r.Context()
 		pos, err := rdb.Incr(ctx, queue.KeyCurrentPosition).Result()
 		if err != nil {
 			slog.Error("Redis error during position increment", "error", err)
