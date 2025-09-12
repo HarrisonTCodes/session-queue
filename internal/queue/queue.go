@@ -11,11 +11,18 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
+const (
+	KeyCurrentPosition     = "queue:current-position"
+	KeyWindowEnd           = "queue:window-end"
+	KeyNextWindowIncrement = "queue:next-window-increment"
+	KeyLeaderId            = "queue:leader-id"
+)
+
 func Init(rdb *redis.Client, ctx context.Context, instanceId string, addr string, windowSize int, windowInterval int) {
 	err := rdb.MSetNX(ctx,
-		"queue:current-position", 0,
-		"queue:window-end", windowSize,
-		"queue:next-window-increment", windowInterval,
+		KeyCurrentPosition, 0,
+		KeyWindowEnd, windowSize,
+		KeyNextWindowIncrement, windowInterval,
 	).Err()
 	if err != nil {
 		slog.Error("Redis error during initialisation of key-value pairs", "error", err)
@@ -42,7 +49,7 @@ func watch(rdb *redis.Client, ctx context.Context, instanceId string, windowSize
 			continue
 		}
 
-		vals, err := rdb.MGet(ctx, "queue:current-position", "queue:window-end", "queue:next-window-increment").Result()
+		vals, err := rdb.MGet(ctx, KeyCurrentPosition, KeyWindowEnd, KeyNextWindowIncrement).Result()
 		if err != nil {
 			slog.Error("Redis error during retrieval of queue values", "error", err)
 			time.Sleep(checkDuration)

@@ -44,7 +44,7 @@ func HandleStatus(rdb *redis.Client, jwtSecret []byte, windowSize int, activeWin
 		}
 
 		ctx := context.Background()
-		windowEndStr, _ := rdb.Get(ctx, "queue:window-end").Result()
+		windowEndStr, _ := rdb.Get(ctx, queue.KeyWindowEnd).Result()
 		windowEnd, _ := strconv.ParseInt(windowEndStr, 10, 64)
 
 		status := queue.GetPositionStatus(pos, windowEnd, windowSize, activeWindowCount)
@@ -66,7 +66,7 @@ type JoinResponse struct {
 func HandleJoin(rdb *redis.Client, jwtSecret []byte) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := context.Background()
-		pos, err := rdb.Incr(ctx, "queue:current-position").Result()
+		pos, err := rdb.Incr(ctx, queue.KeyCurrentPosition).Result()
 		if err != nil {
 			slog.Error("Redis error during position increment", "error", err)
 			http.Error(w, "failed to issue token", http.StatusInternalServerError)

@@ -17,7 +17,7 @@ func TestElectSelfAsLeader(t *testing.T) {
 	rdb := redis.NewClient(&redis.Options{Addr: s.Addr()})
 	EnsureElectedLeader(rdb, ctx, "id", time.Second*10)
 
-	leaderId, _ := rdb.Get(ctx, "queue:leader-id").Result()
+	leaderId, _ := rdb.Get(ctx, KeyLeaderId).Result()
 	if leaderId != "id" {
 		t.Fatalf("Expected leader to be id, got %v", leaderId)
 	}
@@ -29,10 +29,10 @@ func TestLeaderAlreadyElected(t *testing.T) {
 
 	ctx := context.Background()
 	rdb := redis.NewClient(&redis.Options{Addr: s.Addr()})
-	rdb.SetNX(ctx, "queue:leader-id", "other-id", 0)
+	rdb.SetNX(ctx, KeyLeaderId, "other-id", 0)
 	EnsureElectedLeader(rdb, ctx, "id", time.Second*10)
 
-	leaderId, _ := rdb.Get(ctx, "queue:leader-id").Result()
+	leaderId, _ := rdb.Get(ctx, KeyLeaderId).Result()
 	if leaderId != "other-id" {
 		t.Fatalf("Expected leader to be other-id, got %v", leaderId)
 	}
@@ -44,10 +44,10 @@ func TestExtendSelfLeadership(t *testing.T) {
 
 	ctx := context.Background()
 	rdb := redis.NewClient(&redis.Options{Addr: s.Addr()})
-	rdb.SetNX(ctx, "queue:leader-id", "id", time.Second*5)
+	rdb.SetNX(ctx, KeyLeaderId, "id", time.Second*5)
 	EnsureElectedLeader(rdb, ctx, "id", time.Second*10)
 
-	expiry, _ := rdb.TTL(ctx, "queue:leader-id").Result()
+	expiry, _ := rdb.TTL(ctx, KeyLeaderId).Result()
 	if expiry <= time.Second*5 {
 		t.Fatal("Expected leader expiry to extend but it did not")
 	}
