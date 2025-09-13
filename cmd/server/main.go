@@ -15,12 +15,10 @@ func main() {
 	slog.Info("Loading config")
 	cfg := config.Load()
 
-	slog.Info("Connecting to Redis", "address", cfg.RedisAddr)
+	slog.Info("Creating Redis client", "address", cfg.RedisAddr)
 	rdb := redis.NewClient(&redis.Options{
 		Addr: cfg.RedisAddr,
 	})
-	ctx := context.Background()
-	queue.Init(rdb, ctx, cfg.InstanceId, cfg.RedisAddr, cfg.WindowSize, cfg.WindowInterval)
 
 	slog.Info("Registering HTTP handlers")
 	mux := http.NewServeMux()
@@ -28,5 +26,11 @@ func main() {
 	mux.HandleFunc("POST /join", routes.HandleJoin(rdb, cfg.JwtSecret))
 
 	slog.Info("Running server", "port", cfg.Port)
-	http.ListenAndServe(":"+cfg.Port, mux)
+	go http.ListenAndServe(":"+cfg.Port, mux)
+
+	slog.Info("Setting up queue in Redis")
+	ctx := context.Background()
+	queue.Init(rdb, ctx, cfg.InstanceId, cfg.RedisAddr, cfg.WindowSize, cfg.WindowInterval)
+
+	select {}
 }

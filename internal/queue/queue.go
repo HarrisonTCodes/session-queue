@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
-	"os"
 	"strconv"
 	"time"
 
@@ -19,14 +18,23 @@ const (
 )
 
 func Init(rdb *redis.Client, ctx context.Context, instanceId string, addr string, windowSize int, windowInterval int) {
-	err := rdb.MSetNX(ctx,
-		KeyCurrentPosition, 0,
-		KeyWindowEnd, windowSize,
-		KeyNextWindowIncrement, windowInterval,
-	).Err()
-	if err != nil {
+	for {
+		err := rdb.MSetNX(ctx,
+			KeyCurrentPosition, 0,
+			KeyWindowEnd, windowSize,
+			KeyNextWindowIncrement, windowInterval,
+		).Err()
+		if err == nil {
+			slog.Info("Queue set up in Redis")
+			break
+		}
+
 		slog.Error("Redis error during initialisation of key-value pairs", "error", err)
-		os.Exit(1)
+		select {
+		case <-ctx.Done():
+			slog.Error("Context cancelled whilst waiting for Redis", "error", ctx.Err())
+		case <-time.After(time.Second * 3):
+		}
 	}
 
 	go watch(rdb, ctx, instanceId, windowSize, windowInterval)
