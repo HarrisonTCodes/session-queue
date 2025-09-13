@@ -19,17 +19,21 @@ const (
 
 func Init(rdb *redis.Client, ctx context.Context, instanceId string, addr string, windowSize int, windowInterval int) {
 	for {
-		err := rdb.MSetNX(ctx,
+		ok, err := rdb.MSetNX(ctx,
 			KeyCurrentPosition, 0,
 			KeyWindowEnd, windowSize,
 			KeyNextWindowIncrement, windowInterval,
-		).Err()
+		).Result()
 		if err == nil {
-			slog.Info("Queue set up in Redis")
+			if ok {
+				slog.Info("Queue set up in Redis")
+			} else {
+				slog.Info("Queue already set up in Redis")
+			}
 			break
 		}
 
-		slog.Error("Redis error during initialisation of key-value pairs", "error", err)
+		slog.Error("Redis error during queue setup", "error", err)
 		select {
 		case <-ctx.Done():
 			slog.Error("Context cancelled whilst waiting for Redis", "error", ctx.Err())
