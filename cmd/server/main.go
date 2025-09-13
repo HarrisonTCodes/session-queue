@@ -23,6 +23,7 @@ func main() {
 	slog.Info("Registering HTTP handlers")
 	mux := http.NewServeMux()
 	mux.HandleFunc("/livez", routes.HandleLivez)
+	mux.HandleFunc("/readyz", routes.HandleReadyz(rdb))
 	mux.HandleFunc("/status", routes.HandleStatus(rdb, cfg.JwtSecret, cfg.WindowSize, cfg.ActiveWindowCount))
 	mux.HandleFunc("POST /join", routes.HandleJoin(rdb, cfg.JwtSecret))
 
