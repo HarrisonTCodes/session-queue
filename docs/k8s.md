@@ -3,7 +3,7 @@
 Simple Kubernetes manifests can be found in the `k8s` folder. The configuration there, as well as the instructions in this document, are designed for a local bare-metal cluster (particularly using minikube) for testing how the distributed system behaves across multiple replicas.
 
 ## Configuration
-There are 3 mainfests in the `k8s` folder:
+There are 3 manifests in the `k8s` folder:
 - `app.yaml`: The `Deployment` and `Service` for the `session-queue` app
 - `redis.yaml`: Simple Redis `Deployment` and `Service` for the `session-queue` replicas.
 - `config.yaml`: Environment variable configuration for `session-queue` with some sensible testing defaults.
@@ -38,7 +38,7 @@ kubectl logs {pod} --follow
 ```
 
 ## Production
-As mentioned, the out-the-box mainfests are made for local development testing. There are various changes that could/should be made for a production-ready k8s deployment, including:
+As mentioned, the out-the-box manifests are made for local development testing. There are various changes that could/should be made for a production-ready k8s deployment, including:
 - Pushing the image to a remote registry and not using `imagePullPolicy: Never`
 - Using a `Service` of type `LoadBalancer` to expose the deployment (particularly if on a cloud environment)
 - Storing the JWT secret outside of config/source control, and using something like [ESO](https://external-secrets.io/latest/) to inject it

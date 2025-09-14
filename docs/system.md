@@ -9,8 +9,8 @@ The server keeps track of two dynamic values, which are just integers in Redis:
 - The last queue position in the current active window  
 
 Based on static variables (namely the window size and number of active windows), each ticket's state can be derived from its own position, as either:
-- Expired: the ticket was issued before the current acive windows and is no longer active
-- Active: the ticket is within the actve windows (ie less than the last active queue position, and greater than the lower bound)
+- Expired: the ticket was issued before the current active windows and is no longer active
+- Active: the ticket is within the active windows (ie less than the last active queue position, and greater than the lower bound)
 - Waiting: the ticket position is greater than the last active queue position and not yet active
 
 The last active queue position can then be incremented, by the window size, at a regular interval, thus sliding the window and processing the next batch of tickets.
@@ -33,4 +33,4 @@ To interact with the system as a user, 2 HTTP endpoints are exposed:
 ## Considerations
 By storing state on the client-side with JWTs and only integers server-side, the system is scalable and can handle very large queues.
 
-For slow queues where the window is attempting to increment faster than people are joining queues (ie the next latest active queue position is greater than the current queue position), window increments are skipped until the queue catches up to avoid issuing expired tickets. This, however, leads to the edge case of a user requesting a ticket after a skipped incremement and the window almost instantly incrementing after, invalidating it. To avoid this, multiple active windows are recommended (at least 2), to allow spill-over from the previous batch whilst still preventing bursty traffic from very old tickets.
+For slow queues where the window is attempting to increment faster than people are joining queues (ie the next latest active queue position is greater than the current queue position), window increments are skipped until the queue catches up to avoid issuing expired tickets. This, however, leads to the edge case of a user requesting a ticket after a skipped increment and the window almost instantly incrementing after, invalidating it. To avoid this, multiple active windows are recommended (at least 2), to allow spill-over from the previous batch whilst still preventing bursty traffic from very old tickets.
