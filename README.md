@@ -1,5 +1,11 @@
 # Session Queue
 
+[![Go Report Card](https://goreportcard.com/badge/github.com/HarrisonTCodes/session-queue)](https://goreportcard.com/report/github.com/HarrisonTCodes/session-queue)
+[![Go Version](https://img.shields.io/badge/go-1.24-blue?logo=go)](https://golang.org)
+![CI](https://github.com/HarrisonTCodes/session-queue/actions/workflows/ci.yaml/badge.svg)
+[![Conventional Commits](https://img.shields.io/badge/Conventional%20Commits-1.0.0-%23FE5196?logo=conventionalcommits&logoColor=white)](https://conventionalcommits.org)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+
 A solution to the system design problem of a fair, scalable queue and waiting list service, similar those seen with popular events retailers such as Ticketmaster. Written in Go.
 
 ## Design
